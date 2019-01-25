@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+canvas {
+    border:1px solid #d3d3d3;
+    background-color: #f1f1f1;
+ 
+}
+</style>
+</head>
+<body onload="startGame()">
+    
+    <p style="font-family:trebuchetms; color:black; font-size:300%; font-weight: bold; position: absolute; top:0; left:400px;"> WELCOME TO MY GAME! </p>
+    
+<script>
+
+var Smiley;
+var Walls = [];
+var Score;
+
+function startGame() {
+    Smiley = new component(30, 30, "Smiley.jpg", 10, 120, "image");
+    Smiley.gravity = 0.05;
+    Score = new component("30px", "Consolas", "black", 280, 40, "text");
+    Gamespace.start();
+}
+
+var Gamespace = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+        this.canvas.width = 480;
+        this.canvas.height = 270;
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        this.frameNo = 0;
+        this.interval = setInterval(updateGameArea, 20);
+        },
+    clear : function() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+}
+
+function component(width, height, color, x, y, type) {
+    this.type = type;
+    if (type == "image") {
+        this.image = new Image();
+        this.image.src = color;
+    }
+    this.score = 0;
+    this.width = width;
+    this.height = height;
+    this.speedX = 0;
+    this.speedY = 0;    
+    this.x = x;
+    this.y = y;
+    this.gravity = 0;
+    this.gravitySpeed = 0;
+    this.update = function() {
+        ctx = Gamespace.context;
+        if (type == "image") {
+            ctx.drawImage(this.image, 
+                this.x, 
+                this.y,
+                this.width, this.height);
+        } else {
+            ctx.fillStyle = color;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
+    }
+    this.newPos = function() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+    }
+    
+    this.hitBottom = function() {
+        var rockbottom = Gamespace.canvas.height - this.height;
+        if (this.y > rockbottom) {
+            this.y = rockbottom;
+            this.gravitySpeed = 0;
+        }
+    }
+    
+    this.crashWith = function(otherobj) {
+        var myleft = this.x;
+        var myright = this.x + (this.width);
+        var mytop = this.y;
+        var mybottom = this.y + (this.height);
+        var otherleft = otherobj.x;
+        var otherright = otherobj.x + (otherobj.width);
+        var othertop = otherobj.y;
+        var otherbottom = otherobj.y + (otherobj.height);
+        var crash = true;
+        if ((mybottom < othertop) || (mytop > otherbottom) || (myright < otherleft) || (myleft > otherright)) {
+            crash = false;
+        }
+        return crash;
+    }
+}
+
+function updateGameArea() {
+    var x, height, gap, minHeight, maxHeight, minGap, maxGap;
+    for (i = 0; i < Walls.length; i += 1) {
+        if (Smiley.crashWith(Walls[i])) {
+            return;
+        } 
+    }
+    Gamespace.clear();
+    Gamespace.frameNo += 1;
+    if (Gamespace.frameNo == 1 || everyinterval(150)) {
+        x = Gamespace.canvas.width;
+        minHeight = 20;
+        maxHeight = 200;
+        height = Math.floor(Math.random()*(maxHeight-minHeight+1)+minHeight);
+        minGap = 50;
+        maxGap = 200;
+        gap = Math.floor(Math.random()*(maxGap-minGap+1)+minGap);
+        Walls.push(new component(10, height, "blue", x, 0));
+        Walls.push(new component(10, x - height - gap, "yellow", x, height + gap));
+    }
+    for (i = 0; i < Walls.length; i += 1) {
+        Walls[i].x += -1;
+        Walls[i].update();
+    }
+    Score.text="SCORE: " + Gamespace.frameNo;
+    Score.update();
+    Smiley.newPos();
+    Smiley.update();
+}
+
+function everyinterval(n) {
+    if ((Gamespace.frameNo / n) % 1 == 0) {return true;}
+    return false;
+}
+
+function moveup() {
+    Smiley.speedY = -1; 
+}
+    
+function movedown() {
+    Smiley.speedY = 1; 
+}
+    
+function clearmove() {
+    Smiley.speedX = 0; 
+    Smiley.speedY = 0; 
+}
+    
+</script>
+<br>
+    
+<button button onmousedown="moveup()" onmouseup="clearmove()" ontouchstart="moveup()" style="background: #FFFFFF; color: #000; font-family:trebuchetms; border-radius: 10px; border: 1px solid #999; font-size: 175%; font-weight: bold;">UP</button>
+    
+<button button onmousedown="movedown()" onmouseup="clearmove()" ontouchstart="movedown()" style="background: #FFFFFF; color: #000; font-family:trebuchetms; border-radius: 10px; border: 1px solid #999; font-size: 175%; font-weight: bold;">DOWN</button>
+    
+<p style="color: #000; font-family:trebuchetms; font-size: 175%;">Press the UP button to jump, and the DOWN button to go down.</p>
+<p style="color: #000; font-family:trebuchetms; font-size: 175%;">Can you beat the game?</p>
+<p style="color: #000; font-family:trebuchetms; font-size: 175%;">Ps: Get it? Cause Mario couldn't jump in my old game? And I couldn't beat my old game? Or upload to github? :(</p>
+</body>
+</html>
